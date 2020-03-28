@@ -12,11 +12,11 @@ object ZIOTypes {
     *
     * Provide definitions for the ZIO type aliases below.
     */
-  type Task[+A] = ???
-  type UIO[+A] = ???
-  type RIO[-R, +A] = ???
-  type IO[+E, +A] = ???
-  type URIO[-R, +A] = ???
+  type Task[+A] = ZIO[Any, Throwable, A]
+  type UIO[+A] = ZIO[Any, Nothing, A]
+  type RIO[-R, +A] = ZIO[R, Throwable, A]
+  type IO[+E, +A] = ZIO[Any, E, A]
+  type URIO[-R, +A] = ZIO[R, Nothing, A]
 }
 
 object HelloWorld extends App {
@@ -28,7 +28,8 @@ object HelloWorld extends App {
     * Implement a simple "Hello World!" program using the effect returned by `putStrLn`.
     */
   def run(args: List[String]): ZIO[ZEnv, Nothing, Int] =
-    ???
+    putStrLn("Hello World!") as 0 
+    // `as` Maps the success value of this effect to the specified constant value
 }
 
 object PrintSequence extends App {
@@ -41,7 +42,7 @@ object PrintSequence extends App {
     * produce an effect that prints three lines of text to the console.
     */
   def run(args: List[String]): ZIO[ZEnv, Nothing, Int] =
-    ???
+    putStrLn("Hello,") *> putStrLn("My name is Reid") *> ZIO.succeed(0)
 }
 
 object ErrorRecovery extends App {
@@ -61,7 +62,7 @@ object ErrorRecovery extends App {
     * preceding `failed` effect into the effect that `run` returns.
     */
   def run(args: List[String]): ZIO[ZEnv, Nothing, Int] =
-    ???
+    (failed as 0).catchAllCause(cause => putStrLn(s"${cause.prettyPrint}") as 1) 
 }
 
 object Looping extends App {
@@ -73,7 +74,8 @@ object Looping extends App {
     * Implement a `repeat` combinator using `flatMap` and recursion.
     */
   def repeat[R, E, A](n: Int)(effect: ZIO[R, E, A]): ZIO[R, E, A] =
-    ???
+    if (n <= 1) effect
+    else effect *> repeat(n -1)(effect)
 
   def run(args: List[String]): ZIO[ZEnv, Nothing, Int] =
     repeat(100)(putStrLn("All work and no play makes Jack a dull boy")) as 0
